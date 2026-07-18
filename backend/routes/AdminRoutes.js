@@ -1,20 +1,40 @@
 const express =require("express");
 const admincontroller=require("../controllers/AdminController");
-const router=express.router();
+const router=express.Router();
 
 //--------------------post--------------------
-router.post('/admin',admincontroller.AdminRegister);
+router.post('/admin_register',admincontroller.AdminRegister);
+
+router.post('/employer_register',admincontroller.EmployerRegister);
 
 
 //--------------------get----------------------
+router.get("/", admincontroller.getAllEmployers);
+router.get("/search", admincontroller.searchEmployer);
 
 
+router.get("/jobseekers", admincontroller.getAllJobSeekers);
+router.get("/jobseekers/search", admincontroller.searchJobSeeker);
+router.get("/jobseekers/:id", admincontroller.getJobSeekerById);
 
+router.get("/:id", admincontroller.getEmployerById);
 
 
 //--------------------put----------------------
 
-
+router.put( "/employer/:id", admincontroller.updateEmployer);
+router.put( "/update-password/:id", admincontroller.updatePassword);
 
 
 //-------------------delete----------------------
+router.delete( "/employer/:id", admincontroller.deleteEmployer);
+router.delete( "/jobseeker/:id", admincontroller.deleteJobSeeker);
+
+
+router.delete("/jobseekers/:id", admincontroller.deleteJobSeeker);
+
+
+
+module.exports=router;
+
+

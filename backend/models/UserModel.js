@@ -9,8 +9,14 @@ const UserSchema=new mongoose.Schema({
         type:String,
         required:true,
     },
+    UserId:{
+        type:mongoose.Schema.Types.ObjectId,
+        required:true,
+    },
     Role:{
         type:String,
         required:true,
     }
 });
+
+module.exports=mongoose.model('User',UserSchema);

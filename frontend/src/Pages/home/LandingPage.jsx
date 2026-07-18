@@ -1,8 +1,10 @@
 import React from 'react'
 import HomeNavbar from '../../components/navbar/HomeNavbar';
+import { useNavigate } from 'react-router-dom';
 
 
 function LandingPage() {
+    const navigate = useNavigate();
 
     return (
         <>
@@ -55,6 +57,10 @@ function LandingPage() {
 
                         <button>
                             Search Jobs
+                        </button>
+
+                        <button onClick={() => navigate('/home/get_started')}>
+                            Get Started
                         </button>
 
                     </div>

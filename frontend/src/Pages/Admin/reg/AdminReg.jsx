@@ -7,23 +7,39 @@ function AdminReg() {
     const [email, setEmail] = useState("");
     const [contact, setContact] = useState("");
     const [address, setAddress] = useState("");
-    const [res, setres] = useState("");
-    const [conPassword,setConPassword]=useState("");
-    const [password,setPassword]=useState("");
+    const [res, setRes] = useState("");
+    const [conPassword, setConPassword] = useState("");
+    const [password, setPassword] = useState("");
 
 
     const handleReg = async () => {
-        const response = await axios.post('http://localhost:5000/admin/register',{name,address,email,contact,password});
+        try{
+        if (password !== conPassword) {
+            setRes("Passwords do not match");
+            return;
+        }
+        const response = await axios.post('http://localhost:5000/admin/admin_register', { name, address, email, contact, password });
 
         if (response.data) {
             console.log("registered admin: ", response.data);
+            setRes(response.data.message);
             setTimeout(() => {
-                setAddress(response.data.message);
+                setRes("");
             }, 3000);
+            setAddress("");
             setName("");
             setAddress("");
             setEmail("");
-            setConatact("");
+            setContact("");
+            setPassword("");
+            setConPassword("");
+        }
+        }
+        catch(e){
+            setRes(response.data.message);
+            setTimeout(() => {
+                setRes("");
+            }, 3000);
         }
     }
 
@@ -37,10 +53,10 @@ function AdminReg() {
                     <p>Email:<input type='text' value={email} onChange={(e) => setEmail(e.target.value)} /></p>
                     <p>Contact:<input type='text' value={contact} onChange={(e) => setContact(e.target.value)} /></p>
                     <p>Address:<input type='text' value={address} onChange={(e) => setAddress(e.target.value)} /></p>
-                    <p>PassWord:<input type='text' value={password} onChange={(e) => setPassword(e.target.value)} /></p>
-                    <p>PassWord:<input type='text' value={conPassword} onChange={(e) => setConPassword(e.target.value)} /></p>
-                    <p><button onClick={handleReg}></button></p>
-                    <p><h4>{res}</h4></p>
+                    <p>Password:<input type='password' value={password} onChange={(e) => setPassword(e.target.value)} /></p>
+                    <p>Confirm:<input type='password' value={conPassword} onChange={(e) => setConPassword(e.target.value)} /></p>
+                    <p><button onClick={handleReg}>Register</button></p>
+                    <h4>{res}</h4>
                 </div>
             </div>
             <div>

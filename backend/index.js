@@ -6,6 +6,10 @@ const app=express();
 
 
 const AdminRoutes=require("./routes/AdminRoutes");
+const HomeRoutes=require("./routes/HomeRoutes");
+const EmployerRoutes=require("./routes/EmployerRoutes");
+
+
 
 
 dotenv.config();
@@ -20,6 +24,10 @@ app.get("/", (req, res) => {
 
 //routes-api
 app.use('/admin',AdminRoutes);
+
+app.use('/home',HomeRoutes);
+
+app.use('/Employer',EmployerRoutes);
 
 
 
