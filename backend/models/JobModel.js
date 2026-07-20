@@ -1,5 +1,6 @@
 const mongoose=require("mongoose");
 
+
 const JobSchema = mongoose.Schema({
     Title:{
         type:String,
@@ -15,6 +16,7 @@ const JobSchema = mongoose.Schema({
     },
     CompanyId:{
         type:mongoose.Schema.Types.ObjectId,
+        ref:"Employer",
         required:true,
     },
     JobType:{
@@ -31,6 +33,6 @@ const JobSchema = mongoose.Schema({
         required:true,
         enum:['Active','Inactive']
     }
-});
+},{timestamps:true});
 
 module.exports=mongoose.model('Job',JobSchema);

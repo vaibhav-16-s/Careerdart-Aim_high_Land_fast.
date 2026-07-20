@@ -1,40 +1,88 @@
 const User = require("../models/UserModel");
 const bcrypt = require("bcryptjs");
-const JobSeeker=require("../models/JobSeekerModel");
-
+const JobSeeker = require("../models/JobSeekerModel");
+const Admin = require("../models/AdminModel");
+const Employer = require("../models/EmployerModel");
+const jwt = require("jsonwebtoken");
 
 exports.loginUser = async (req, res) => {
+
     try {
 
         const { email, password } = req.body;
 
-        const user = await User.findOne({ Email: email });
 
-        if (!user) {
-            return res.json({
-                success: false,
-                error: "Invalid credentials"
-            });
-        }
-
-        const isMatch = await bcrypt.compare(password, user.Password);
-
-        if (!isMatch) {
-            return res.json({
-                success: false,
-                error: "Invalid credentials"
-            });
-        }
-
-        return res.json({
-            success: true,
-            message: "Login successful",
-            role: user.Role
+        const user = await User.findOne({
+            Email: email
         });
 
-    } catch (error) {
 
-        console.error(error);
+        if (!user) {
+
+            return res.json({
+                success: false,
+                error: "Invalid credentials"
+            });
+
+        }
+
+
+        const isMatch = await bcrypt.compare(
+            password,
+            user.Password
+        );
+
+
+        if (!isMatch) {
+
+            return res.json({
+                success: false,
+                error: "Invalid credentials"
+            });
+
+        }
+
+
+
+        const token = jwt.sign(
+            {
+                id: user.UserId,
+                role: user.Role
+            },
+            process.env.JWT_SECRET,
+            {
+                expiresIn: "1d"
+            }
+        );
+
+
+
+
+        let name = "";
+
+        if (user.Role === "Admin") {
+            const profile = await Admin.findById(user.UserId);
+            name = profile ? profile.Name : "";
+        } else if (user.Role === "Employer") {
+            const profile = await Employer.findById(user.UserId);
+            name = profile ? profile.Name : "";
+        } else if (user.Role === "JobSeeker") {
+            const profile = await JobSeeker.findById(user.UserId);
+            name = profile ? profile.Name : "";
+        }
+
+        res.json({
+            success: true,
+            token,
+            role: user.Role,
+            userId: user.UserId,
+            name: name,
+        });
+
+    }
+    catch (error) {
+
+        console.log(error);
 
         res.status(500).json({
             success: false,
@@ -45,10 +93,14 @@ exports.loginUser = async (req, res) => {
 
 };
 
-
 exports.JobSeekerReg = async (req, res) => {
     try {
         const { name, email, contact, address, password, qual, skills, DOB, Bio, gender } = req.body;
+
+        let skillsList = skills;
+        if (typeof skills === "string") {
+            skillsList = skills.split(",").map((s) => s.trim()).filter(Boolean);
+        }
 
 
         const existingUser = await User.findOne({ Email: email });
@@ -61,12 +113,23 @@ exports.JobSeekerReg = async (req, res) => {
         }
 
         // Create Job Seeker
-        const jobSeeker = await JobSeeker.create(
-            {
-                Name: name, Email: email, Contact: contact, Address: address, DOB,
-                Gender: gender, Qualification: qual, Skills: skills, Bio, Role: "JobSeeker"
-            }
-        );
+        const jobSeeker = await JobSeeker.create({
+            Name: name,
+            Email: email,
+            Contact: contact,
+            Address: address,
+            DOB,
+            Gender: gender,
+            Qualification: qual,
+            Skills: skillsList,
+            Bio,
+
+            Role: "JobSeeker",
+
+            ProfilePic: req.file
+                ? "profiles/" + req.file.filename
+                : "default.png"
+        });
         // Hash password
         const hashPass = await bcrypt.hash(password, 10);
 

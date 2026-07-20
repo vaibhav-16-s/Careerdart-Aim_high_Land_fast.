@@ -57,6 +57,10 @@ const JobSeekerSchema = new mongoose.Schema(
         Role: {
             type: String,
             default: "JobSeeker"
+        },
+        ProfilePic: {
+            type: String,
+            default: "default.png"
         }
     },
     {

@@ -26,6 +26,10 @@ const EmployerSchema=new mongoose.Schema({
     Role:{
         type:String,
         default:"Employer",
+    },
+    ProfilePic:{
+        type:String,
+        default:"default.png"
     }
 })
 module.exports=mongoose.model("Employer",EmployerSchema);

@@ -1,6 +1,7 @@
 import React, { useActionState, useState } from 'react'
 import axios from 'axios';
 import AdminNavbar from '../../../components/navbar/AdminNavbar'
+import API from '../../../api/AxiosInstance'
 
 function EmployerReg() {
     const [name, setName] = useState("");
@@ -19,7 +20,7 @@ function EmployerReg() {
                 setRes("Passwords do not match");
                 return;
             }
-            const response = await axios.post('http://localhost:5000/admin/employer_register', { name, address, email, contact, password, web });
+            const response = await API.post("/admin/employer_register", { name, address, email, contact, password, web });
 
             if (response.data) {
                 console.log("registered admin: ", response.data);
@@ -38,7 +39,7 @@ function EmployerReg() {
             }
         }
         catch (e) {
-            setRes(response.data.message);
+            setRes(e.response?.data?.message || "Registration failed");
             setTimeout(() => {
                     setRes("");
                 }, 3000);

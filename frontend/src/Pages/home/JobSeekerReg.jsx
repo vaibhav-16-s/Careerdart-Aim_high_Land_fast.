@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-import axios from 'axios';
 import HomeNavbar from '../../components/navbar/HomeNavbar';
+import API from '../../api/AxiosInstance'
 
 function JobSeekerReg() {
     const [name, setName] = useState("");
@@ -16,42 +16,73 @@ function JobSeekerReg() {
     const [Bio, setBio] = useState("");
     const [skill, setSkill] = useState("");
     const [skills, setSkills] = useState([]);
+    const [profilePic, setProfilePic] = useState(null);
 
 
     const handleReg = async () => {
-        try {
-            if (password !== conPassword) {
-                setRes("Passwords do not match");
-                return;
-            }
-            const response = await axios.post('http://localhost:5000/home/jobseeker_register', { name, address, email, contact, password, qual, skills, DOB, Bio, gender });
+    try {
+        if (password !== conPassword) {
+            setRes("Passwords do not match");
+            return;
+        }
 
-            if (response.data) {
-                console.log("registered admin: ", response.data);
-                setRes(response.data.message);
-                setTimeout(() => {
-                    setRes("");
-                }, 5000);
-                setAddress("");
-                setName("");
-                setAddress("");
-                setEmail("");
-                setContact("");
-                setQual("");
-                setDOB("");
-                setGender("");
-                setBio("")
-                setPassword("");
-                setConPassword("");
+        const formData = new FormData();
+
+        formData.append("name", name);
+        formData.append("address", address);
+        formData.append("email", email);
+        formData.append("contact", contact);
+        formData.append("password", password);
+        formData.append("qual", qual);
+        formData.append("skills", skills);
+        formData.append("DOB", DOB);
+        formData.append("Bio", Bio);
+        formData.append("gender", gender);
+
+        if (profilePic) {
+            formData.append("ProfilePic", profilePic);
+        }
+
+        const response = await API.post(
+            "/home/jobseeker_register",
+            formData,
+            {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
             }
-        }
-        catch (e) {
-            setRes(response.data.message);
-            setTimeout(() => {
-                setRes("");
-            }, 5000);
-        }
+        );
+
+        console.log("Registered:", response.data);
+
+        setRes(response.data.message);
+
+        setTimeout(() => {
+            setRes("");
+        }, 5000);
+
+        setName("");
+        setAddress("");
+        setEmail("");
+        setContact("");
+        setQual("");
+        setSkills([]);
+        setDOB("");
+        setGender("");
+        setBio("");
+        setPassword("");
+        setConPassword("");
+        setProfilePic(null);
+
+    } catch (e) {
+        setRes(e.response?.data?.message || "Registration failed");
+
+        setTimeout(() => {
+            setRes("");
+        }, 5000);
     }
+};
+
 
     const addSkill = () => {
         const trimmedSkill = skill.trim();
@@ -144,10 +175,19 @@ function JobSeekerReg() {
                         ))}
                     </div>
                     <p>Bio:<input type='text' value={Bio} onChange={(e) => setBio(e.target.value)} /></p>
+                    <p>
+                        Profile Picture:
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => setProfilePic(e.target.files[0])}
+                        />
+                    </p>
                     <p>Contact:<input type='text' value={contact} onChange={(e) => setContact(e.target.value)} /></p>
                     <p>Address:<input type='text' value={address} onChange={(e) => setAddress(e.target.value)} /></p>
                     <p>Password:<input type='password' value={password} onChange={(e) => setPassword(e.target.value)} /></p>
                     <p>Confirm:<input type='password' value={conPassword} onChange={(e) => setConPassword(e.target.value)} /></p>
+                   
                     <p><button onClick={handleReg}>Register</button></p>
                     <h4>{res}</h4>
                 </div>

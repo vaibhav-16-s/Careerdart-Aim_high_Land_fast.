@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import AdminNavbar from '../../../components/navbar/AdminNavbar';
 import { useParams, useNavigate } from 'react-router-dom';
+import API from '../../../api/AxiosInstance'
 
 
 function EmployerEdit() {
@@ -36,9 +37,7 @@ function EmployerEdit() {
 
         try{
 
-            const response = await axios.get(
-                `http://localhost:5000/admin/${id}`
-            );
+            const response = await API.get(`/admin/${id}`);
 
 
             const emp = response.data.employer;
@@ -71,11 +70,7 @@ function EmployerEdit() {
         try{
 
 
-            const response = await axios.put(
-
-                `http://localhost:5000/admin/employer/${id}`,
-
-                {
+            const response = await API.put(`/admin/employer/${id}`, {
                     name,
                     email,
                     contact,
@@ -95,7 +90,7 @@ function EmployerEdit() {
 
                 setRes("");
 
-                navigate("/admin/manage_employer");
+                navigate("/admin/manage_employers");
 
             },2000);
 

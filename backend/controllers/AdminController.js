@@ -3,6 +3,8 @@ const User = require("../models/UserModel");
 const bcrypt = require("bcryptjs");
 const Employer = require("../models/EmployerModel");
 const JobSeeker = require("../models/JobSeekerModel");
+const Job =require("../models/JobModel");
+const Application = require("../models/ApplicationModel");
 
 
 
@@ -51,6 +53,68 @@ exports.AdminRegister = async (req, res) => {
             error: error.message
         });
     }
+};
+
+// ===========================
+// Admin Dashboard Stats
+// ===========================
+
+exports.getDashboardStats = async(req,res)=>{
+
+    try{
+
+        console.log("Dashboard API called");
+
+
+        const totalUsers = await User.countDocuments();
+
+        console.log("Users:", totalUsers);
+
+
+        const employers = await Employer.countDocuments();
+
+        console.log("Employers:", employers);
+
+
+        const jobSeekers = await JobSeeker.countDocuments();
+
+        console.log("JobSeekers:", jobSeekers);
+
+
+        const jobs = await Job.countDocuments({
+            Status:"Active"
+        });
+
+        console.log("Jobs:", jobs);
+
+
+
+        res.json({
+
+            success:true,
+            totalUsers,
+            employers,
+            jobSeekers,
+            jobs
+
+        });
+
+
+    }
+    catch(error){
+
+        console.log("Dashboard Error:", error);
+
+
+        res.status(500).json({
+
+            success:false,
+            message:error.message
+
+        });
+
+    }
+
 };
 
 //employer
@@ -115,10 +179,20 @@ exports.getAllEmployers = async (req, res) => {
 
         const employers = await Employer.find().sort({ Name: 1 });
 
+        const employersWithCounts = [];
+
+        for (const emp of employers) {
+            const jobCount = await Job.countDocuments({ CompanyId: emp._id });
+            employersWithCounts.push({
+                ...emp.toObject(),
+                jobCount: jobCount
+            });
+        }
+
         res.json({
             success: true,
-            count: employers.length,
-            employers
+            count: employersWithCounts.length,
+            employers: employersWithCounts
         });
 
     } catch (err) {
@@ -319,16 +393,24 @@ exports.getAllJobSeekers = async (req, res) => {
 
     try {
 
-        const jobseekers = await JobSeeker.find()
-            .sort({ Name: 1 });
+        const jobseekers = await JobSeeker.find().sort({ Name: 1 });
 
+        const jobseekersWithCounts = [];
+
+        for (const js of jobseekers) {
+            const applicationCount = await Application.countDocuments({
+                JobSeekerId: js._id
+            });
+            jobseekersWithCounts.push({
+                ...js.toObject(),
+                applicationCount: applicationCount
+            });
+        }
 
         res.json({
-
             success: true,
-            count: jobseekers.length,
-            jobseekers
-
+            count: jobseekersWithCounts.length,
+            jobseekers: jobseekersWithCounts
         });
 
 

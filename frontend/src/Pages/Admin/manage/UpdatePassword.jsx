@@ -1,7 +1,11 @@
 import React,{useState} from 'react';
-import axios from 'axios';
 import AdminNavbar from '../../../components/navbar/AdminNavbar';
+import EmployerNavbar from '../../../components/navbar/EmployerNavbar';
+import JobSeekerNavbar from '../../../components/navbar/JobSeekerNavbar';
 import {useParams,useNavigate} from 'react-router-dom';
+import API from '../../../api/AxiosInstance'
+import ContactSection from '../../../components/ContactSection';
+import FooterSection from '../../../components/FooterSection';
 
 
 
@@ -11,6 +15,7 @@ function UpdatePassword(){
     const {id}=useParams();
 
     const navigate=useNavigate();
+    const role = localStorage.getItem("role");
 
 
     const [password,setPassword]=useState("");
@@ -42,14 +47,9 @@ function UpdatePassword(){
         try{
 
 
-            const response=await axios.put(
-
-                `http://localhost:5000/admin/update-password/${id}`,
-
-                {
-                    password
-                }
-
+            const response = await API.put(
+                `/admin/update-password/${id}`,
+                { password }
             );
 
 
@@ -97,7 +97,9 @@ function UpdatePassword(){
 
         <div className="header">
 
-            <AdminNavbar/>
+            {role === "Employer" ? <EmployerNavbar /> :
+             role === "JobSeeker" ? <JobSeekerNavbar /> :
+             <AdminNavbar />}
 
         </div>
 
@@ -184,11 +186,8 @@ function UpdatePassword(){
 
 
 
-        <div className="footer">
-
-            © CareerDart
-
-        </div>
+        <ContactSection />
+        <FooterSection />
 
 
         </>

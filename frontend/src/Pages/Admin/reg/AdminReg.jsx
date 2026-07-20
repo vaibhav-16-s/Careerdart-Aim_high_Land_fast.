@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import axios from 'axios';
 import AdminNavbar from '../../../components/navbar/AdminNavbar'
+import API from '../../../api/AxiosInstance'
 
 function AdminReg() {
     const [name, setName] = useState("");
@@ -18,7 +19,7 @@ function AdminReg() {
             setRes("Passwords do not match");
             return;
         }
-        const response = await axios.post('http://localhost:5000/admin/admin_register', { name, address, email, contact, password });
+        const response = await API.post("/admin/admin_register", { name, address, email, contact, password });
 
         if (response.data) {
             console.log("registered admin: ", response.data);
@@ -36,7 +37,7 @@ function AdminReg() {
         }
         }
         catch(e){
-            setRes(response.data.message);
+            setRes(e.response?.data?.message || "Registration failed");
             setTimeout(() => {
                 setRes("");
             }, 3000);
