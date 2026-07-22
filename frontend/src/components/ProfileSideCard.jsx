@@ -1,36 +1,38 @@
-import Card from "react-bootstrap/Card";
 import Button from "react-bootstrap/Button";
 import { useNavigate } from "react-router-dom";
 import { getProfilePicUrl } from "../utils/profilePic";
+import LoadingSpinner from "./LoadingSpinner";
 
 function ProfileSideCard({ profile, role }) {
-
     const navigate = useNavigate();
 
     if (!profile) {
-        return <p>Loading profile...</p>;
+        return <LoadingSpinner text="Loading profile..." />;
     }
 
     return (
-        <Card>
-            <Card.Body className="text-center">
+        <div className="profile-card">
+            <div className="profile-card__banner" />
+            <div className="profile-card__avatar-wrap">
                 <img
+                    className="profile-card__avatar"
                     src={getProfilePicUrl(profile.ProfilePic)}
                     alt={profile.Name}
-                    width="120"
-                    height="120"
                 />
-                <Card.Title>{profile.Name}</Card.Title>
-                <Card.Subtitle className="mb-2 text-muted">{role}</Card.Subtitle>
-                <Card.Text>
-                    <strong>Email:</strong><br />
-                    {profile.Email}
-                </Card.Text>
-                <Button variant="outline-primary" size="sm" onClick={() => navigate("/updateProfile")}>
+            </div>
+            <div className="profile-card__body">
+                <h3 className="profile-card__name">{profile.Name}</h3>
+                <span className="profile-card__role">{role}</span>
+                <p className="profile-card__email">{profile.Email}</p>
+                <Button
+                    variant="outline-primary"
+                    size="sm"
+                    onClick={() => navigate("/updateProfile")}
+                >
                     Edit Profile
                 </Button>
-            </Card.Body>
-        </Card>
+            </div>
+        </div>
     );
 }
 

@@ -1,18 +1,19 @@
 import React, { useEffect, useState } from "react";
-import Card from "react-bootstrap/Card";
 import Button from "react-bootstrap/Button";
-import API from "../../api/AxiosInstance";
+import PageLayout from "../../components/PageLayout";
 import JobSeekerNavbar from "../../components/navbar/JobSeekerNavbar";
-import ContactSection from "../../components/ContactSection";
-import FooterSection from "../../components/FooterSection";
+import PageHeader from "../../components/PageHeader";
+import StatusBadge from "../../components/StatusBadge";
+import EmptyState from "../../components/EmptyState";
+import API from "../../api/AxiosInstance";
 
 function JobSearch() {
-
     const [title, setTitle] = useState("");
     const [location, setLocation] = useState("");
     const [jobType, setJobType] = useState("");
     const [jobs, setJobs] = useState([]);
     const [selectedFiles, setSelectedFiles] = useState({});
+    const [applying, setApplying] = useState(null);
 
     const handleSearch = async () => {
         try {
@@ -20,7 +21,6 @@ function JobSearch() {
             if (title) params.append("title", title);
             if (location) params.append("location", location);
             if (jobType) params.append("jobType", jobType);
-
             const res = await API.get(`/jobseeker/searchjobs?${params.toString()}`);
             setJobs(res.data);
         } catch (error) {
@@ -35,96 +35,102 @@ function JobSearch() {
 
     const handleApply = async (jobId) => {
         const file = selectedFiles[jobId];
-
         if (!file) {
-            alert("Please select a resume.");
+            alert("Please select a resume (PDF).");
             return;
         }
 
+        setApplying(jobId);
         try {
             const formData = new FormData();
             formData.append("JobId", jobId);
             formData.append("Resume", file);
-
             const res = await API.post("/application/apply", formData);
             alert(res.data.message);
         } catch (error) {
-            console.log(error);
             alert(error.response?.data?.message || "Something went wrong");
+        } finally {
+            setApplying(null);
         }
     };
 
     return (
-        <>
-            <div className="header"><JobSeekerNavbar /></div>
-            <div className="body container mt-4">
-                <h2>Search Jobs</h2>
+        <PageLayout navbar={<JobSeekerNavbar />}>
+            <div className="page-container">
+                <PageHeader
+                    eyebrow="Job Search"
+                    title="Find Your Next Role"
+                    subtitle="Search active listings and apply with your resume in one click."
+                />
 
-                <Card className="mb-3">
-                    <Card.Body>
-                        <p>
-                            Job Title:
-                            <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} />
-                        </p>
-                        <p>
-                            Location:
-                            <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} />
-                        </p>
-                        <p>
-                            Job Type:
-                            <select value={jobType} onChange={(e) => setJobType(e.target.value)}>
-                                <option value="">All</option>
-                                <option>Full Time</option>
-                                <option>Part Time</option>
-                                <option>Intern</option>
-                            </select>
-                        </p>
-                        <Button onClick={handleSearch}>Search Jobs</Button>
-                    </Card.Body>
-                </Card>
-
-                <h4>Available Jobs</h4>
+                <div className="filter-bar mb-section">
+                    <input
+                        type="text"
+                        placeholder="Job title or keyword..."
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                    />
+                    <input
+                        type="text"
+                        placeholder="Location..."
+                        value={location}
+                        onChange={(e) => setLocation(e.target.value)}
+                    />
+                    <select value={jobType} onChange={(e) => setJobType(e.target.value)}>
+                        <option value="">All Types</option>
+                        <option>Full Time</option>
+                        <option>Part Time</option>
+                        <option>Intern</option>
+                    </select>
+                    <Button onClick={handleSearch}>Search</Button>
+                </div>
 
                 {jobs.length === 0 ? (
-                    <p>No jobs found.</p>
+                    <EmptyState
+                        icon="🔍"
+                        title="No jobs found"
+                        text="Try adjusting your search filters or check back later."
+                    />
                 ) : (
-                    jobs.map((job) => (
-                        <Card className="mb-3" key={job._id}>
-                            <Card.Body>
-                                <Card.Title>{job.Title}</Card.Title>
-                                <Card.Subtitle className="mb-2 text-muted">
-                                    {job.JobType} • {job.Location}
-                                    {job.CompanyId?.Name && ` • ${job.CompanyId.Name}`}
-                                </Card.Subtitle>
-                                <Card.Text>
-                                    <strong>Description:</strong><br />
-                                    {job.Desc}
-                                </Card.Text>
-                                <Card.Text><strong>Salary:</strong> ₹ {job.Salary}</Card.Text>
-                                <Card.Text><strong>Status:</strong> {job.Status}</Card.Text>
-                                <input
-                                    type="file"
-                                    accept=".pdf"
-                                    onChange={(e) =>
-                                        setSelectedFiles({
-                                            ...selectedFiles,
-                                            [job._id]: e.target.files[0],
-                                        })
-                                    }
-                                />
-                                {" "}
-                                <Button variant="success" onClick={() => handleApply(job._id)}>
-                                    Apply
-                                </Button>
-                            </Card.Body>
-                        </Card>
-                    ))
+                    <div className="jobs-grid">
+                        {jobs.map((job) => (
+                            <div className="job-card" key={job._id}>
+                                <p className="job-card__company">
+                                    {job.CompanyId?.Name || "Company"}
+                                </p>
+                                <h3 className="job-card__title">{job.Title}</h3>
+                                <div className="job-card__meta">
+                                    <StatusBadge status={job.JobType} />
+                                    <span className="text-secondary-cd">📍 {job.Location}</span>
+                                </div>
+                                <p className="job-card__desc">{job.Desc}</p>
+                                <div className="job-card__footer">
+                                    <span className="job-card__salary">₹ {job.Salary?.toLocaleString()}</span>
+                                </div>
+                                <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                                    <input
+                                        type="file"
+                                        accept=".pdf"
+                                        style={{ fontSize: '0.85rem' }}
+                                        onChange={(e) =>
+                                            setSelectedFiles({ ...selectedFiles, [job._id]: e.target.files[0] })
+                                        }
+                                    />
+                                    <Button
+                                        variant="success"
+                                        size="sm"
+                                        disabled={applying === job._id}
+                                        onClick={() => handleApply(job._id)}
+                                    >
+                                        {applying === job._id ? "Applying..." : "Apply Now"}
+                                    </Button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 )}
             </div>
-
-            <ContactSection />
-            <FooterSection />
-        </>
+        </PageLayout>
     );
 }
 

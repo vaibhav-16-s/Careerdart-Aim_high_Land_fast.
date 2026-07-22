@@ -1,16 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import AdminNavbar from '../../../components/navbar/AdminNavbar';
 import Button from 'react-bootstrap/Button';
-import Card from 'react-bootstrap/Card';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+import PageLayout from '../../../components/PageLayout';
+import AdminNavbar from '../../../components/navbar/AdminNavbar';
+import PageHeader from '../../../components/PageHeader';
+import EmptyState from '../../../components/EmptyState';
 import API from '../../../api/AxiosInstance';
 import { getProfilePicUrl } from '../../../utils/profilePic';
-import ContactSection from '../../../components/ContactSection';
-import FooterSection from '../../../components/FooterSection';
 
 function ManageJobSeeker() {
-
     const [jobseekers, setJobseekers] = useState([]);
     const [search, setSearch] = useState("");
 
@@ -23,7 +22,6 @@ function ManageJobSeeker() {
             const url = keyword
                 ? `/admin/jobseekers/search?keyword=${keyword}`
                 : "/admin/jobseekers";
-
             const res = await API.get(url);
             setJobseekers(res.data.jobseekers);
         } catch (err) {
@@ -33,7 +31,6 @@ function ManageJobSeeker() {
 
     const deleteJobSeeker = async (id) => {
         if (!window.confirm("Delete this JobSeeker?")) return;
-
         try {
             await API.delete(`/admin/jobseekers/${id}`);
             getJobSeekers();
@@ -43,51 +40,62 @@ function ManageJobSeeker() {
     };
 
     return (
-        <>
-            <div className="header">
-                <AdminNavbar />
-            </div>
-
-            <div className="body container mt-4">
-                <h3>Manage JobSeekers</h3>
-
-                <input
-                    type="text"
-                    placeholder="Search JobSeeker"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+        <PageLayout navbar={<AdminNavbar />}>
+            <div className="page-container">
+                <PageHeader
+                    eyebrow="Admin"
+                    title="Manage Job Seekers"
+                    subtitle="Browse and manage registered job seeker accounts."
                 />
-                <button onClick={() => getJobSeekers(search)}>Search</button>
 
-                <Row className="mt-3">
-                    {jobseekers.map((job) => (
-                        <Col lg={4} md={6} key={job._id} className="mb-3">
-                            <Card>
-                                <Card.Img variant="top" src={getProfilePicUrl(job.ProfilePic)} />
-                                <Card.Body>
-                                    <Card.Title>{job.Name}</Card.Title>
-                                    <Card.Text><strong>Email:</strong> {job.Email}</Card.Text>
-                                    <Card.Text><strong>Bio:</strong> {job.Bio || "No bio added"}</Card.Text>
-                                    <Card.Text><strong>Gender:</strong> {job.Gender}</Card.Text>
-                                    <Card.Text><strong>DOB:</strong> {new Date(job.DOB).toLocaleDateString()}</Card.Text>
-                                    <Card.Text><strong>Qualification:</strong> {job.Qualification}</Card.Text>
-                                    <Card.Text><strong>Skills:</strong> {job.Skills ? job.Skills.join(", ") : "None"}</Card.Text>
-                                    <Card.Text><strong>Contact:</strong> {job.Contact}</Card.Text>
-                                    <Card.Text><strong>Address:</strong> {job.Address}</Card.Text>
-                                    <Card.Text><strong>Total Applications:</strong> {job.applicationCount || 0}</Card.Text>
-                                    <Button variant="danger" onClick={() => deleteJobSeeker(job._id)}>
-                                        Delete
-                                    </Button>
-                                </Card.Body>
-                            </Card>
-                        </Col>
-                    ))}
-                </Row>
+                <div className="filter-bar mb-section">
+                    <input
+                        type="text"
+                        placeholder="Search by name, email, or skill..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && getJobSeekers(search)}
+                    />
+                    <Button onClick={() => getJobSeekers(search)}>Search</Button>
+                </div>
+
+                {jobseekers.length === 0 ? (
+                    <EmptyState icon="👤" title="No job seekers found" text="Try a different search term." />
+                ) : (
+                    <Row>
+                        {jobseekers.map((job) => (
+                            <Col lg={4} md={6} key={job._id} className="mb-3">
+                                <div className="job-card" style={{ padding: 0, overflow: 'hidden' }}>
+                                    <img
+                                        src={getProfilePicUrl(job.ProfilePic)}
+                                        alt={job.Name}
+                                        style={{ width: '100%', height: 160, objectFit: 'cover' }}
+                                    />
+                                    <div style={{ padding: '1.25rem' }}>
+                                        <h3 className="job-card__title">{job.Name}</h3>
+                                        <div style={{ fontSize: '0.9rem', color: 'var(--cd-text-secondary)', marginBottom: '1rem' }}>
+                                            <p style={{ margin: '0.25rem 0' }}>✉️ {job.Email}</p>
+                                            <p style={{ margin: '0.25rem 0' }}>🎓 {job.Qualification}</p>
+                                            <p style={{ margin: '0.25rem 0' }}>📞 {job.Contact}</p>
+                                            <p style={{ margin: '0.25rem 0' }}>📍 {job.Address}</p>
+                                            {job.Skills?.length > 0 && (
+                                                <div style={{ marginTop: '0.5rem' }}>
+                                                    {job.Skills.slice(0, 4).map((s, i) => (
+                                                        <span className="skill-tag" key={i} style={{ fontSize: '0.7rem' }}>{s}</span>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            <p style={{ margin: '0.5rem 0 0', fontWeight: 600 }}>📨 {job.applicationCount || 0} applications</p>
+                                        </div>
+                                        <Button variant="danger" size="sm" onClick={() => deleteJobSeeker(job._id)}>Delete</Button>
+                                    </div>
+                                </div>
+                            </Col>
+                        ))}
+                    </Row>
+                )}
             </div>
-
-            <ContactSection />
-            <FooterSection />
-        </>
+        </PageLayout>
     );
 }
 

@@ -6,9 +6,9 @@ import cd_logo from '../../assets/CD_logo.png';
 import { useNavigate } from 'react-router-dom';
 
 function JobSeekerNavbar() {
-
     const navigate = useNavigate();
     const userId = localStorage.getItem("userId");
+    const name = localStorage.getItem("name");
 
     const handleLogout = () => {
         localStorage.removeItem("token");
@@ -19,23 +19,28 @@ function JobSeekerNavbar() {
     };
 
     return (
-        <Navbar bg="primary" data-bs-theme="dark">
+        <Navbar expand="lg" className="cd-navbar" variant="dark">
             <Container>
-                <Navbar.Brand href="/">
-                    <img src={cd_logo} alt="Careerdart Logo" width="35" height="35" className="me-2" />
-                    Careerdart
+                <Navbar.Brand href="/jobseeker/dashboard">
+                    <img src={cd_logo} alt="CareerDart Logo" width="35" height="35" />
+                    CareerDart
                 </Navbar.Brand>
-                <Nav className="me-auto">
-                    <Nav.Link href="/jobseeker/dashboard">Dashboard</Nav.Link>
-                    <Nav.Link href="/jobseeker/jobsearch">Search Jobs</Nav.Link>
-                    <Nav.Link href="/jobseeker/applications">Applications</Nav.Link>
-                    <NavDropdown title="Account" id="jobseeker-nav-dropdown">
-                        <NavDropdown.Item href={`/updatePassword/${userId}`}>Update Pass</NavDropdown.Item>
-                        <NavDropdown.Item href="/updateProfile">Update Profile</NavDropdown.Item>
-                        <NavDropdown.Divider />
-                        <NavDropdown.Item onClick={handleLogout}>Logout</NavDropdown.Item>
-                    </NavDropdown>
-                </Nav>
+                <Navbar.Toggle aria-controls="jobseeker-nav" />
+                <Navbar.Collapse id="jobseeker-nav">
+                    <Nav className="me-auto">
+                        <Nav.Link href="/jobseeker/dashboard">Dashboard</Nav.Link>
+                        <Nav.Link href="/jobseeker/jobsearch">Search Jobs</Nav.Link>
+                        <Nav.Link href="/jobseeker/applications">My Applications</Nav.Link>
+                    </Nav>
+                    <Nav>
+                        <NavDropdown title={name || "Account"} id="jobseeker-nav-dropdown" align="end">
+                            <NavDropdown.Item href={`/updatePassword/${userId}`}>Update Password</NavDropdown.Item>
+                            <NavDropdown.Item href="/updateProfile">Update Profile</NavDropdown.Item>
+                            <NavDropdown.Divider />
+                            <NavDropdown.Item onClick={handleLogout}>Logout</NavDropdown.Item>
+                        </NavDropdown>
+                    </Nav>
+                </Navbar.Collapse>
             </Container>
         </Navbar>
     );

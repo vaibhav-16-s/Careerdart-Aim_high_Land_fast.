@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from "react";
-import Card from "react-bootstrap/Card";
-import API from "../../api/AxiosInstance";
+import Button from "react-bootstrap/Button";
+import { useNavigate } from "react-router-dom";
+import PageLayout from "../../components/PageLayout";
 import JobSeekerNavbar from "../../components/navbar/JobSeekerNavbar";
-import ContactSection from "../../components/ContactSection";
-import FooterSection from "../../components/FooterSection";
+import PageHeader from "../../components/PageHeader";
+import StatusBadge from "../../components/StatusBadge";
+import EmptyState from "../../components/EmptyState";
+import API from "../../api/AxiosInstance";
+import { getResumeUrl } from "../../utils/profilePic";
 
 function MyApplications() {
-
+    const navigate = useNavigate();
     const [applications, setApplications] = useState([]);
 
     useEffect(() => {
@@ -23,47 +27,54 @@ function MyApplications() {
     };
 
     return (
-        <>
-            <div className="header">
-                <JobSeekerNavbar />
-            </div>
-
-            <div className="body container mt-4">
-                <h3>My Applications</h3>
+        <PageLayout navbar={<JobSeekerNavbar />}>
+            <div className="page-container">
+                <PageHeader
+                    eyebrow="My Applications"
+                    title="Application History"
+                    subtitle="Track the status of every job you've applied to."
+                />
 
                 {applications.length === 0 ? (
-                    <p>No applications found</p>
+                    <EmptyState
+                        icon="📭"
+                        title="No applications yet"
+                        text="Start exploring jobs and submit your first application."
+                        action={<Button onClick={() => navigate("/jobseeker/jobsearch")}>Search Jobs</Button>}
+                    />
                 ) : (
-                    applications.map((app) => (
-                        <Card className="mb-3" key={app._id}>
-                            <Card.Body>
-                                <Card.Title>{app.JobId?.Title}</Card.Title>
-                                <Card.Text>Location: {app.JobId?.Location}</Card.Text>
-                                <Card.Text>Salary: {app.JobId?.Salary}</Card.Text>
-                                <Card.Text>Job Type: {app.JobId?.JobType}</Card.Text>
-                                <Card.Text>Company: {app.EmployerId?.Name}</Card.Text>
-                                <Card.Text>
+                    <div className="jobs-grid">
+                        {applications.map((app) => (
+                            <div className="job-card" key={app._id}>
+                                <p className="job-card__company">{app.EmployerId?.Name}</p>
+                                <h3 className="job-card__title">{app.JobId?.Title}</h3>
+                                <div className="job-card__meta">
+                                    <StatusBadge status={app.Status} />
+                                    <span className="text-secondary-cd">{app.JobId?.JobType}</span>
+                                    <span className="text-secondary-cd">📍 {app.JobId?.Location}</span>
+                                </div>
+                                <div className="job-card__footer">
+                                    <span className="job-card__salary">₹ {app.JobId?.Salary?.toLocaleString()}</span>
                                     <a
-                                        href={`http://localhost:5000/uploads/resumes/${app.Resume}`}
+                                        href={getResumeUrl(app.Resume)}
                                         target="_blank"
                                         rel="noreferrer"
+                                        style={{ fontSize: '0.85rem' }}
                                     >
                                         View Resume
                                     </a>
-                                </Card.Text>
-                                <Card.Text>Status: <b>{app.Status}</b></Card.Text>
+                                </div>
                                 {app.Status === "Pending" && (
-                                    <Card.Text>Waiting for employer response</Card.Text>
+                                    <p style={{ fontSize: '0.85rem', color: 'var(--cd-text-muted)', marginTop: '0.75rem', marginBottom: 0 }}>
+                                        ⏳ Waiting for employer response
+                                    </p>
                                 )}
-                            </Card.Body>
-                        </Card>
-                    ))
+                            </div>
+                        ))}
+                    </div>
                 )}
             </div>
-
-            <ContactSection />
-            <FooterSection />
-        </>
+        </PageLayout>
     );
 }
 

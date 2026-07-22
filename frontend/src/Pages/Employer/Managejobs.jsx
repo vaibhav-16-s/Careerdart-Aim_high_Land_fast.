@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
+import PageLayout from '../../components/PageLayout';
 import EmployerNavbar from '../../components/navbar/EmployerNavbar';
+import PageHeader from '../../components/PageHeader';
+import StatusBadge from '../../components/StatusBadge';
+import EmptyState from '../../components/EmptyState';
 import API from '../../api/AxiosInstance';
-import ContactSection from '../../components/ContactSection';
-import FooterSection from '../../components/FooterSection';
 
 function Managejobs() {
-
     const navigate = useNavigate();
     const [jobs, setJobs] = useState([]);
     const [searchTitle, setSearchTitle] = useState("");
@@ -26,7 +26,7 @@ function Managejobs() {
     useEffect(() => {
         fetchJobs();
     }, []);
-
+    
     const filteredJobs = jobs.filter((job) => {
         const matchTitle = job.Title.toLowerCase().includes(searchTitle.toLowerCase());
         const matchLocation = job.Location.toLowerCase().includes(searchLocation.toLowerCase());
@@ -39,7 +39,6 @@ function Managejobs() {
             await API.put(`/employer/jobs/${job._id}`, { status: newStatus });
             fetchJobs();
         } catch (err) {
-            console.log(err);
             alert("Could not update job");
         }
     };
@@ -50,71 +49,82 @@ function Managejobs() {
             await API.delete(`/employer/jobs/${id}`);
             fetchJobs();
         } catch (err) {
-            console.log(err);
             alert("Could not delete job");
         }
     };
 
     return (
-        <>
-            <div className='header'>
-                <EmployerNavbar />
-            </div>
-
-            <div className='body container mt-4'>
-                <h4>Jobs Released By You</h4>
-                <p>Manage your posted jobs, update details and track applications.</p>
-
-                <input
-                    type="text"
-                    placeholder="Search by job name"
-                    value={searchTitle}
-                    onChange={(e) => setSearchTitle(e.target.value)}
+        <PageLayout navbar={<EmployerNavbar />}>
+            <div className="page-container">
+                <PageHeader
+                    eyebrow="Job Management"
+                    title="Your Posted Jobs"
+                    subtitle="Manage listings, toggle visibility, and track performance."
+                    actions={
+                        <button className="btn-cd-primary" onClick={() => navigate("/employer/jobreg")}>
+                            + Post New Job
+                        </button>
+                    }
                 />
-                <input
-                    type="text"
-                    placeholder="Search by location"
-                    value={searchLocation}
-                    onChange={(e) => setSearchLocation(e.target.value)}
-                />
-                <button onClick={() => navigate("/employer/jobreg")}>Register New Job</button>
 
-                <hr />
+                <div className="filter-bar mb-section">
+                    <input
+                        type="text"
+                        placeholder="Search by job title..."
+                        value={searchTitle}
+                        onChange={(e) => setSearchTitle(e.target.value)}
+                    />
+                    <input
+                        type="text"
+                        placeholder="Filter by location..."
+                        value={searchLocation}
+                        onChange={(e) => setSearchLocation(e.target.value)}
+                    />
+                </div>
 
                 {jobs.length === 0 ? (
-                    <h5>No Jobs Posted Yet</h5>
+                    <EmptyState
+                        icon="📋"
+                        title="No jobs posted yet"
+                        text="Create your first job listing to start receiving applications."
+                        action={<Button onClick={() => navigate("/employer/jobreg")}>Post a Job</Button>}
+                    />
                 ) : filteredJobs.length === 0 ? (
-                    <h5>No jobs match your search</h5>
+                    <EmptyState icon="🔍" title="No matching jobs" text="Try different search terms." />
                 ) : (
-                    filteredJobs.map((job) => (
-                        <Card className="mb-3" key={job._id}>
-                            <Card.Body>
-                                <Card.Title>{job.Title}</Card.Title>
-                                <Card.Subtitle className="mb-2 text-muted">
-                                    {job.JobType} | {job.Location}
-                                </Card.Subtitle>
-                                <Card.Text>
-                                    <b>Description:</b><br />
-                                    {job.Desc}
-                                </Card.Text>
-                                <Card.Text><b>Salary:</b> ₹ {job.Salary}</Card.Text>
-                                <Card.Text><b>Status:</b> {job.Status}</Card.Text>
-                                <Button variant="warning" onClick={() => toggleStatus(job)}>
-                                    {job.Status === "Active" ? "Deactivate" : "Activate"}
-                                </Button>
-                                {" "}
-                                <Button variant="danger" onClick={() => deleteJob(job._id)}>
-                                    Delete
-                                </Button>
-                            </Card.Body>
-                        </Card>
-                    ))
+                    <div className="jobs-grid">
+                        {filteredJobs.map((job) => (
+                            <div className="job-card" key={job._id}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                    <h3 className="job-card__title">{job.Title}</h3>
+                                    <StatusBadge status={job.Status} />
+                                </div>
+                                <div className="job-card__meta">
+                                    <StatusBadge status={job.JobType} />
+                                    <span className="text-secondary-cd">📍 {job.Location}</span>
+                                </div>
+                                <p className="job-card__desc">{job.Desc}</p>
+                                <div className="job-card__footer">
+                                    <span className="job-card__salary">₹ {job.Salary?.toLocaleString()}</span>
+                                    <div className="gap-actions">
+                                        <Button
+                                            variant={job.Status === "Active" ? "warning" : "success"}
+                                            size="sm"
+                                            onClick={() => toggleStatus(job)}
+                                        >
+                                            {job.Status === "Active" ? "Deactivate" : "Activate"}
+                                        </Button>
+                                        <Button variant="danger" size="sm" onClick={() => deleteJob(job._id)}>
+                                            Delete
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 )}
             </div>
-
-            <ContactSection />
-            <FooterSection />
-        </>
+        </PageLayout>
     );
 }
 

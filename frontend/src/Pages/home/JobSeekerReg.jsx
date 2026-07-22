@@ -1,6 +1,9 @@
-import React, { useState } from 'react'
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import PageLayout from '../../components/PageLayout';
 import HomeNavbar from '../../components/navbar/HomeNavbar';
-import API from '../../api/AxiosInstance'
+import PageHeader from '../../components/PageHeader';
+import API from '../../api/AxiosInstance';
 
 function JobSeekerReg() {
     const [name, setName] = useState("");
@@ -17,83 +20,53 @@ function JobSeekerReg() {
     const [skill, setSkill] = useState("");
     const [skills, setSkills] = useState([]);
     const [profilePic, setProfilePic] = useState(null);
+    const [loading, setLoading] = useState(false);
 
-
-    const handleReg = async () => {
-    try {
+    const handleReg = async (e) => {
+        e?.preventDefault();
         if (password !== conPassword) {
             setRes("Passwords do not match");
             return;
         }
 
-        const formData = new FormData();
+        setLoading(true);
+        try {
+            const formData = new FormData();
+            formData.append("name", name);
+            formData.append("address", address);
+            formData.append("email", email);
+            formData.append("contact", contact);
+            formData.append("password", password);
+            formData.append("qual", qual);
+            formData.append("skills", skills);
+            formData.append("DOB", DOB);
+            formData.append("Bio", Bio);
+            formData.append("gender", gender);
+            if (profilePic) formData.append("ProfilePic", profilePic);
 
-        formData.append("name", name);
-        formData.append("address", address);
-        formData.append("email", email);
-        formData.append("contact", contact);
-        formData.append("password", password);
-        formData.append("qual", qual);
-        formData.append("skills", skills);
-        formData.append("DOB", DOB);
-        formData.append("Bio", Bio);
-        formData.append("gender", gender);
+            const response = await API.post("/home/jobseeker_register", formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
 
-        if (profilePic) {
-            formData.append("ProfilePic", profilePic);
+            setRes(response.data.message);
+            setTimeout(() => setRes(""), 5000);
+
+            setName(""); setAddress(""); setEmail(""); setContact("");
+            setQual(""); setSkills([]); setDOB(""); setGender("");
+            setBio(""); setPassword(""); setConPassword(""); setProfilePic(null);
+        } catch (e) {
+            setRes(e.response?.data?.message || "Registration failed");
+            setTimeout(() => setRes(""), 5000);
+        } finally {
+            setLoading(false);
         }
-
-        const response = await API.post(
-            "/home/jobseeker_register",
-            formData,
-            {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            }
-        );
-
-        console.log("Registered:", response.data);
-
-        setRes(response.data.message);
-
-        setTimeout(() => {
-            setRes("");
-        }, 5000);
-
-        setName("");
-        setAddress("");
-        setEmail("");
-        setContact("");
-        setQual("");
-        setSkills([]);
-        setDOB("");
-        setGender("");
-        setBio("");
-        setPassword("");
-        setConPassword("");
-        setProfilePic(null);
-
-    } catch (e) {
-        setRes(e.response?.data?.message || "Registration failed");
-
-        setTimeout(() => {
-            setRes("");
-        }, 5000);
-    }
-};
-
+    };
 
     const addSkill = () => {
         const trimmedSkill = skill.trim();
-
-        if (trimmedSkill === "") return;
-
-        // Prevent duplicates
-        if (!skills.includes(trimmedSkill)) {
+        if (trimmedSkill && !skills.includes(trimmedSkill)) {
             setSkills([...skills, trimmedSkill]);
         }
-
         setSkill("");
     };
 
@@ -102,119 +75,118 @@ function JobSeekerReg() {
     };
 
     return (
-        <>
-            <div className='header'><HomeNavbar /></div>
+        <PageLayout navbar={<HomeNavbar />}>
+            <div className="page-container">
+                <PageHeader
+                    eyebrow="Join CareerDart"
+                    title="Create Your Account"
+                    subtitle="Register as a job seeker and start applying to opportunities today."
+                />
 
-            <div className='body'><h3>Job Seeker Register</h3>
-                <h4>Heyo! Seeker!!</h4>
-                <div className='regadmin'>
-                    <p>Name:<input type='text' value={name} onChange={(e) => setName(e.target.value)} /></p>
-                    <p>
-                        Gender:
-                        <label className="ms-2">
-                            <input type="radio" name="gender" value="Male" checked={gender === "Male"}
-                                onChange={(e) => setGender(e.target.value)} />
-                            Male
-                        </label>
-
-                        <label className="ms-3">
-                            <input type="radio" name="gender" value="Female" checked={gender === "Female"}
-                                onChange={(e) => setGender(e.target.value)} />
-                            Female
-                        </label>
-
-                        <label className="ms-3">
-                            <input type="radio" name="gender" value="Other" checked={gender === "Other"}
-                                onChange={(e) => setGender(e.target.value)} />
-                            Other
-                        </label>
-                    </p>
-                    <p>DOB:<input type='date' value={DOB} onChange={(e) => setDOB(e.target.value)} /></p>
-                    <p>Email:<input type='text' value={email} onChange={(e) => setEmail(e.target.value)} /></p>
-                    <p>Qualifications:<input type='text' value={qual} onChange={(e) => setQual(e.target.value)} /></p>
-                    <p>
-                        Skills:
-                        <input
-                            type="text"
-                            value={skill}
-                            onChange={(e) => setSkill(e.target.value)}
-                        />
-                        <button type="button" onClick={addSkill}>
-                            Add
-                        </button>
-                    </p>
-
-                    <div>
-                        {skills.map((item, index) => (
-                            <span
-                                key={index}
-                                style={{
-                                    display: "inline-block",
-                                    padding: "5px 10px",
-                                    margin: "5px",
-                                    borderRadius: "15px",
-                                    background: "#0d6efd",
-                                    color: "white"
-                                }}
-                            >
-                                {item}
-                                <button
-                                    type="button"
-                                    onClick={() => removeSkill(index)}
-                                    style={{
-                                        marginLeft: "8px",
-                                        border: "none",
-                                        background: "transparent",
-                                        color: "white",
-                                        cursor: "pointer"
-                                    }}
-                                >
-                                    ×
-                                </button>
-                            </span>
-                        ))}
+                <form className="form-section form-section--wide" onSubmit={handleReg}>
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>Full Name</label>
+                            <input type="text" value={name} onChange={(e) => setName(e.target.value)} required />
+                        </div>
+                        <div className="form-group">
+                            <label>Email</label>
+                            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                        </div>
                     </div>
-                    <p>Bio:<input type='text' value={Bio} onChange={(e) => setBio(e.target.value)} /></p>
-                    <p>
-                        Profile Picture:
-                        <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => setProfilePic(e.target.files[0])}
-                        />
+
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>Date of Birth</label>
+                            <input type="date" value={DOB} onChange={(e) => setDOB(e.target.value)} />
+                        </div>
+                        <div className="form-group">
+                            <label>Gender</label>
+                            <div style={{ display: 'flex', gap: '1rem', paddingTop: '0.5rem' }}>
+                                {["Male", "Female", "Other"].map((g) => (
+                                    <label key={g} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 500, cursor: 'pointer' }}>
+                                        <input type="radio" name="gender" value={g} checked={gender === g} onChange={(e) => setGender(e.target.value)} />
+                                        {g}
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>Qualification</label>
+                            <input type="text" value={qual} onChange={(e) => setQual(e.target.value)} placeholder="e.g. B.Tech Computer Science" />
+                        </div>
+                        <div className="form-group">
+                            <label>Contact</label>
+                            <input type="text" value={contact} onChange={(e) => setContact(e.target.value)} />
+                        </div>
+                    </div>
+
+                    <div className="form-group">
+                        <label>Address</label>
+                        <input type="text" value={address} onChange={(e) => setAddress(e.target.value)} />
+                    </div>
+
+                    <div className="form-group">
+                        <label>Bio</label>
+                        <textarea value={Bio} onChange={(e) => setBio(e.target.value)} placeholder="Tell employers about yourself..." />
+                    </div>
+
+                    <div className="form-group">
+                        <label>Skills</label>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <input type="text" value={skill} onChange={(e) => setSkill(e.target.value)} placeholder="Add a skill" onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())} />
+                            <button type="button" className="btn-cd-outline" onClick={addSkill}>Add</button>
+                        </div>
+                        {skills.length > 0 && (
+                            <div style={{ marginTop: '0.75rem' }}>
+                                {skills.map((item, index) => (
+                                    <span className="skill-tag" key={index}>
+                                        {item}
+                                        <button type="button" onClick={() => removeSkill(index)}>×</button>
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="form-group">
+                        <label>Profile Picture</label>
+                        <input type="file" accept="image/*" onChange={(e) => setProfilePic(e.target.files[0])} />
+                    </div>
+
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>Password</label>
+                            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                        </div>
+                        <div className="form-group">
+                            <label>Confirm Password</label>
+                            <input type="password" value={conPassword} onChange={(e) => setConPassword(e.target.value)} required />
+                        </div>
+                    </div>
+
+                    {res && (
+                        <div className={`form-message ${res.includes('success') || res.includes('registered') ? 'form-message--success' : 'form-message--error'}`}>
+                            {res}
+                        </div>
+                    )}
+
+                    <div className="form-actions">
+                        <button type="submit" className="btn-cd-primary" disabled={loading}>
+                            {loading ? 'Creating account...' : 'Create Account'}
+                        </button>
+                    </div>
+
+                    <p style={{ marginTop: '1rem', fontSize: '0.9rem', color: 'var(--cd-text-secondary)' }}>
+                        Already have an account? <Link to="/home/login">Sign in</Link>
                     </p>
-                    <p>Contact:<input type='text' value={contact} onChange={(e) => setContact(e.target.value)} /></p>
-                    <p>Address:<input type='text' value={address} onChange={(e) => setAddress(e.target.value)} /></p>
-                    <p>Password:<input type='password' value={password} onChange={(e) => setPassword(e.target.value)} /></p>
-                    <p>Confirm:<input type='password' value={conPassword} onChange={(e) => setConPassword(e.target.value)} /></p>
-                   
-                    <p><button onClick={handleReg}>Register</button></p>
-                    <h4>{res}</h4>
-                </div>
+                </form>
             </div>
-            <div>
-                <h2>Contact Us</h2>
-                <p>
-                    Email: support@careerdart.com
-                </p>
-
-                <p>
-                    Phone: +1(212)555-0174
-                </p>
-
-                <p>
-                    Address: CareerDart Headquarters, NewYork
-                </p>
-
-            </div>
-
-
-            <div className="footer">
-
-                <div>© Careerdart</div>
-            </div>
-        </>
-    )
+        </PageLayout>
+    );
 }
 
 export default JobSeekerReg;

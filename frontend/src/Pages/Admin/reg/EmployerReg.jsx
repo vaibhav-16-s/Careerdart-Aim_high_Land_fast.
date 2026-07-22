@@ -1,7 +1,8 @@
-import React, { useActionState, useState } from 'react'
-import axios from 'axios';
-import AdminNavbar from '../../../components/navbar/AdminNavbar'
-import API from '../../../api/AxiosInstance'
+import React, { useState } from 'react';
+import PageLayout from '../../../components/PageLayout';
+import AdminNavbar from '../../../components/navbar/AdminNavbar';
+import PageHeader from '../../../components/PageHeader';
+import API from '../../../api/AxiosInstance';
 
 function EmployerReg() {
     const [name, setName] = useState("");
@@ -12,80 +13,54 @@ function EmployerReg() {
     const [conPassword, setConPassword] = useState("");
     const [password, setPassword] = useState("");
     const [web, setWeb] = useState("");
+    const [loading, setLoading] = useState(false);
 
-
-    const handleReg = async () => {
+    const handleReg = async (e) => {
+        e?.preventDefault();
+        if (password !== conPassword) {
+            setRes("Passwords do not match");
+            return;
+        }
+        setLoading(true);
         try {
-            if (password !== conPassword) {
-                setRes("Passwords do not match");
-                return;
-            }
             const response = await API.post("/admin/employer_register", { name, address, email, contact, password, web });
-
-            if (response.data) {
-                console.log("registered admin: ", response.data);
-                setRes(response.data.message);
-                setTimeout(() => {
-                    setRes("");
-                }, 3000);
-                setAddress("");
-                setName("");
-                setAddress("");
-                setEmail("");
-                setContact("");
-                setPassword("");
-                setConPassword("");
-                setWeb("");
-            }
-        }
-        catch (e) {
+            setRes(response.data.message);
+            setTimeout(() => setRes(""), 3000);
+            setName(""); setAddress(""); setEmail(""); setContact(""); setPassword(""); setConPassword(""); setWeb("");
+        } catch (e) {
             setRes(e.response?.data?.message || "Registration failed");
-            setTimeout(() => {
-                    setRes("");
-                }, 3000);
+            setTimeout(() => setRes(""), 3000);
+        } finally {
+            setLoading(false);
         }
-    }
+    };
 
     return (
-        <>
-            <div className='header'><AdminNavbar /></div>
-
-            <div className='body'><h3>Employer Register</h3>
-                <div className='regEmployer'>
-                    <p>Name:<input type='text' value={name} onChange={(e) => setName(e.target.value)} /></p>
-                    <p>Email:<input type='text' value={email} onChange={(e) => setEmail(e.target.value)} /></p>
-                    <p>Website:<input type='text' value={web} onChange={(e) => setWeb(e.target.value)} /></p>
-                    <p>Contact:<input type='text' value={contact} onChange={(e) => setContact(e.target.value)} /></p>
-                    <p>Address:<input type='text' value={address} onChange={(e) => setAddress(e.target.value)} /></p>
-                    <p>Password:<input type='password' value={password} onChange={(e) => setPassword(e.target.value)} /></p>
-                    <p>Confirm:<input type='password' value={conPassword} onChange={(e) => setConPassword(e.target.value)} /></p>
-                    <p><button onClick={handleReg}>Register</button></p>
-                    <h4>{res}</h4>
-                </div>
+        <PageLayout navbar={<AdminNavbar />}>
+            <div className="page-container">
+                <PageHeader eyebrow="Admin" title="Register Employer" subtitle="Onboard a new company to the platform." />
+                <form className="form-section" onSubmit={handleReg}>
+                    <div className="form-row">
+                        <div className="form-group"><label>Company Name</label><input type="text" value={name} onChange={(e) => setName(e.target.value)} required /></div>
+                        <div className="form-group"><label>Email</label><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></div>
+                    </div>
+                    <div className="form-group"><label>Website</label><input type="text" value={web} onChange={(e) => setWeb(e.target.value)} placeholder="https://company.com" /></div>
+                    <div className="form-row">
+                        <div className="form-group"><label>Contact</label><input type="text" value={contact} onChange={(e) => setContact(e.target.value)} /></div>
+                        <div className="form-group"><label>Address</label><input type="text" value={address} onChange={(e) => setAddress(e.target.value)} /></div>
+                    </div>
+                    <div className="form-row">
+                        <div className="form-group"><label>Password</label><input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required /></div>
+                        <div className="form-group"><label>Confirm Password</label><input type="password" value={conPassword} onChange={(e) => setConPassword(e.target.value)} required /></div>
+                    </div>
+                    {res && <div className={`form-message ${res.includes('success') || res.includes('registered') ? 'form-message--success' : 'form-message--error'}`}>{res}</div>}
+                    <div className="form-actions">
+                        <button type="submit" className="btn-cd-primary" disabled={loading}>{loading ? 'Registering...' : 'Register Employer'}</button>
+                    </div>
+                </form>
             </div>
-            <div>
-                <h2>Contact Us</h2>
-                <p>
-                    Email: support@careerdart.com
-                </p>
-
-                <p>
-                    Phone: +1(212)555-0174
-                </p>
-
-                <p>
-                    Address: CareerDart Headquarters, NewYork
-                </p>
-
-            </div>
-
-
-            <div className="footer">
-
-                <div>© Careerdart</div>
-            </div>
-        </>
-    )
+        </PageLayout>
+    );
 }
 
 export default EmployerReg;

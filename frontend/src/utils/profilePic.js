@@ -19,3 +19,10 @@ export function getProfilePicUrl(pic) {
 
     return `${API_BASE}/uploads/profiles/${pic}`;
 }
+
+export function getResumeUrl(filename) {
+    if (!filename) return "#";
+    if (filename.startsWith("http")) return filename;
+    if (filename.startsWith("uploads/")) return `${API_BASE}/${filename}`;
+    return `${API_BASE}/uploads/resumes/${filename}`;
+}
